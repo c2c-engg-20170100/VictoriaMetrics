@@ -1,0 +1,12 @@
+**Steps to deploy Docker Stack**
+
+**Deploy stack**  
+ docker stack deploy -c docker-compose.yml teststack1  
+**Remove stack**  
+docker stack rm teststack1  
+**Path for volumes(data)**  
+ cd /var/lib/docker/volumes/teststack1_prometheus_data/  
+ **To see all running services**  
+ docker service ls  
+ **Reload Prometheus without restart**  
+ curl -X POST http://<yourip>:9090/-/reload

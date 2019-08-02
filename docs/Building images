@@ -1,0 +1,55 @@
+**After taking ssh in machine**    
+yum install -y yum-utils device-mapper-persistent-data lvm2  
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo  
+yum install docker-ce docker-ce-cli containerd.io git -y  
+systemctl start docker  
+systemctl enable docker  
+yum install -y  wget  
+wget https://dl.google.com/go/go1.12.5.linux-arm64.tar.gz  
+tar -C /usr/local -xzf go1.12.5.linux-arm64.tar.gz  
+echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/profile  
+source /etc/profile  
+yum group install -y "Development Tools"  
+go get github.com/VictoriaMetrics/VictoriaMetrics  
+cd go/src/github.com/VictoriaMetrics/VictoriaMetrics/  
+  
+export DOCKER_CLI_EXPERIMENTAL=enabled                                                // **To use docker buildx**  
+
+**For Single node Docker image**    
+make package-victoria-metrics  
+ docker images  
+docker run --name victor -itd -p 8428:8428 8d66353fdbc0  /bin/bash  
+docker ps -a  
+docker exec -it baa28ade4d27 /bin/sh  
+
+**Push to Dockerhub**    
+ docker commit -m "Added ARM64" -a "Apurva" baa28ade4d27 dapurva/victoria-metrics-arm64  
+docker images  
+docker run -itd -p 8428:8428  6de830b9ee06 /bin/bash  
+docker login docker.io  
+docker push dapurva/testvictoriaimage:v1  
+docker images  
+docker rm -f $(docker ps -a -q)  
+docker rmi -f $(docker images -a -q)  
+docker run -itd dapurva/testvictoriaimage:v1 /bin/bash  
+docker exec -it c18f8565f3f8 /bin/sh  
+
+**The Readymade image for single node version victoriametrics**    
+docker run -itd -p 8428:8428 dapurva/victoria-metrics-arm64 /bin/bash  
+
+**For cluster node Docker Image**    
+docker run -itd -p 8480:8480 victoriametrics/vminsert -storageNode=192.168.0.149:8400  
+docker run -itd -p 8481:8481 victoriametrics/vmselect -storageNode=192.168.0.149:8401  
+docker run -itd -p 8482:8482  victoriametrics/vmstorage  
+  
+make vmstorage-prod  
+cp -a bin/  app/vmstorage/deployment/  
+ cd app/vmstorage/deployment/  
+docker build -t victoriametrics/vmstorage .  
+ docker run -itd -p 8482  victoriametrics/vmstorage  
+  
+  
+**The Readymade image for single node version victoriametrics**  
+docker run -itd -p 8480:8480 dapurva/vminsert -storageNode=192.168.0.149:8400  
+docker run -itd -p 8481:8481 dapurva/vmselect -storageNode=192.168.0.149:8401  
+docker run -itd -p 8482:8482  dapurva/vmstorage -storageDataPath=/root/mydata

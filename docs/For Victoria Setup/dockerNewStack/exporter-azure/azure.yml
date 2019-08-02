@@ -1,0 +1,20 @@
+---
+active_directory_authority_url: "https://login.microsoftonline.com/"
+resource_manager_url: "https://management.azure.com/"
+credentials:
+  subscription_id: "efbaf842-f428-4020-8718-9e3a642fa2c6"
+  client_id: "01b7194a-b117-4565-8a2b-f4981fc63e60"
+  client_secret: "E4s0g5I9jFAehxcyfN+qmt:As?O.gfid"
+  tenant_id: "8d701aac-2869-431d-9b81-9720beb26fb9"
+
+
+resource_groups:
+  - resource_group: "Migration_Studio_Rest_Api"
+    resource_types:
+      - "Microsoft.Compute/virtualMachines"
+    metrics:
+      - name: "Percentage CPU"
+      - name: "Network In"
+      - name: "Disk Read Bytes"
+      - name: "Disk Read Operations/Sec"
+      - name: "CPU Credits Remaining"

@@ -1,0 +1,33 @@
+**Answers from different channel to configure Prometheus with VictoriaMetrics**  
+  
+Visit http://<**serverB**>:9090/config and make sure it contains all the scrape_configs and all remote_write config  
+2. Visit http://<**serverB**>:9090/targets and make sure it contains all the scrape targets mentioned in the Prometheus config and they are healthy (i.e. Unhealthy tab has zero targets).  
+3. Inspect Prometheus logs for errors - see https://groups.google.com/forum/#!topic/prometheus-users/tL9Rh-TKeRA   
+4. Inspect VictoriaMetrics logs for errors.  
+5. Navigate to http://<**serverB**>:9090/metrics and check metric values starting from prometheus_remote_storage . Make sure prometheus_remote_storage_succeeded_samples_total increases while prometheus_remote_storage_failed_samples_total remains constant over time.  
+6. Navigate to http://<**serverA**>:8428/metrics and make sure vm_rows_inserted_total increases while vm_read_errors_total remains constant over time.  
+  
+From <https://groups.google.com/forum/#!topic/victorametrics-users/3spzHWcDEmg>   
+#
+Hi @Apurva Dhoble!  
+To verify that Prometheus actually sends data to remote storage you need to check it's metrics.  
+Pls navigate to `http://<prometheus-addr>/metrics` and look for metrics with prefix `prometheus_remote_storage`.  
+Or query these metrics from the graph page at `http://<prometheus-addr>/graph` by executing following query:  
+`{__name__=~"prometheus_remote_storage.*"}`  
+The metrics names are pretty self-describing and it would be easy to understand what is the state of writing into remote storage.  
+  
+To verify that VictoriaMetrics accepts writes from Prometheus navigate to `http://<victoriametrics-addr>/metrics` and look for following metrics:  
+
+    vm_rows_inserted_total{type="prometheus"}  
+    vm_http_requests_total{path="/api/v1/write", protocol="prometheus"}  
+    vm_read_calls_total{name="prometheus"}  
+
+If VictoriaMetrics accepts writes those metrics should have values greater than 0.  
+  
+VictoriMetrics path to storage is configured vai flag `storageDataPath`. You may also find it's value in `http://<victoriametrics-addr>/metrics`. Are you able to query any data from VictoriaMetrics?  
+#
+Question:  hi, i have setup victoria metrics on a single node, and able to see metrics belonging to that host on path  `:8248/metrics` . I have added remote_write  and passed victoria single node hostname in prometheus template and did a restart on promtheus, but i still see only local metrics on 8248, none of the metrics which are available on promtheus are not available here, can someone assist me on this ?  
+  
+Answer:  `/metrics` page exposes only internal metrics from VictoriaMetrics. These metrics can be scraped by Prometheus and later analyzed via official Grafana dashboard for VictoriaMetrics. See https://github.com/VictoriaMetrics/VictoriaMetrics/blob/master/README.md#monitoring for details.  
+All the metrics received by VictoriaMetrics from third-party clients are exposed via Prometheus querying API - see https://prometheus.io/docs/prometheus/latest/querying/api/  or via `/api/v1/export` handler. See https://github.com/VictoriaMetrics/VictoriaMetrics/blob/master/README.md#how-to-export-time-series
+i can see metrics now  by this`/api/v1/export?match[]={job=}`

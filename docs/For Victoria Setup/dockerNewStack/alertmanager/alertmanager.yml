@@ -1,0 +1,24 @@
+route:
+  group_by:
+  - instanceId
+  - alertname
+  - severity
+  receiver: email-me
+
+receivers:
+- name: email-me
+  slack_configs:
+  - channel: '#opensource'
+    send_resolved: true
+    api_url: https://hooks.slack.com/services/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
+    title: "{{ .CommonAnnotations.summary }}"
+    text: "<!channel> \ndescription: {{ .CommonAnnotations.description }}"
+
+#   receiver: 'dingtalk'
+
+# receivers:
+# - name: 'dingtalk'
+#   webhook_configs:
+#   - send_resolved: false
+#     url: http://webhook-dingtalk:8060/dingtalk/main/send
+

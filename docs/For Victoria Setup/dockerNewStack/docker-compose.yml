@@ -1,0 +1,100 @@
+cversion: "3.2"
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+  alertmanager_data: {}
+
+networks:
+  netuser:
+
+services:
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+    - ./prometheus/:/etc/prometheus/
+    - prometheus_data:/prometheus
+    command:
+    - '--config.file=/etc/prometheus/prometheus.yml'
+    - '--storage.tsdb.path=/prometheus'
+    - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+    - '--web.console.templates=/usr/share/prometheus/consoles'
+    - '--web.external-url=http://${PROMETHEUS_HOST}:9090/'
+    - '--web.enable-lifecycle'
+    - '--storage.tsdb.retention=15d'
+    ports:
+    - 9090:9090
+    networks:
+    - netuser
+
+  alertmanager:
+    image: prom/alertmanager:v0.16.0
+    ports:
+    - 9093:9093
+    volumes:
+    - ./alertmanager/:/etc/alertmanager/
+    - alertmanager_data:/alertmanager
+    command:
+    - '--config.file=/etc/alertmanager/alertmanager.yml'
+    - '--storage.path=/alertmanager'
+    networks:
+    - netuser
+
+  grafana:
+    image: grafana/grafana
+    ports:
+    - 3000:3000
+    volumes:
+    - grafana_data:/var/lib/grafana
+    environment:
+    - GF_INSTALL_PLUGINS=camptocamp-prometheus-alertmanager-datasource
+    networks:
+    - netuser
+
+  exporter-aliyun:
+    image: aylei/aliyun-exporter:0.3.1
+    volumes:
+    - ./exporter-aliyun/:/etc/exporter-aliyun
+    command:
+    - '-p'
+    - '9525'
+    - '-c'
+    - '/etc/exporter-aliyun/aliyun-exporter.yml'
+    environment:
+    - ALIYUN_ACCESS_ID=LTAIOR5JxHsS6bhn
+    - ALIYUN_ACCESS_SECRET=ee9UtNyt5rvBQlGBp14350CweSU2EW
+    - ALIYUN_REGION=ap-northeast-1
+    ports:
+    - 9524:9525
+    networks:
+    - netuser
+
+  exporter-aliyun23:
+    image: aylei/aliyun-exporter:0.3.1
+    volumes:
+    - ./exporter-aliyun/:/etc/exporter-aliyun
+    command:
+    - '-p'
+    - '9525'
+    - '-c'
+    - '/etc/exporter-aliyun/aliyun-exporter.yml'
+    environment:
+    - ALIYUN_ACCESS_ID=LTAIOR5JxHsS6bhn
+    - ALIYUN_ACCESS_SECRET=ee9UtNyt5rvBQlGBp14350CweSU2EW
+    - ALIYUN_REGION=ap-south-1
+    ports:
+    - 9526:9525
+    networks:
+    - netuser
+
+  exporter-azure:
+    image: robustperception/azure_metrics_exporter
+    volumes:
+    - ./exporter-azure/:/etc/exporter-azure
+    command:
+    - '--config.file=/etc/exporter-azure/azure.yml'
+    ports:
+    - 9276:9276
+    networks:
+    - netuser

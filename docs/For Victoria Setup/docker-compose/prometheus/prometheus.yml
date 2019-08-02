@@ -1,0 +1,55 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+- 'rules.yml'
+
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - "alertmanager:9093"
+
+scrape_configs:
+
+- job_name: 'prometheus'
+  scrape_interval: 5s
+  static_configs:
+  - targets: ['localhost:9090']
+
+- job_name: 'alertmanager'
+  scrape_interval: 15s
+  static_configs:
+  - targets: ['alertmanager:9093']
+
+- job_name: 'exporter-aliyun'
+  scrape_interval: 30s
+  scrape_timeout: 30s
+  static_configs:
+  - targets: ['192.168.1.89:9524']
+
+- job_name: 'exporter-aliyun23'
+  scrape_interval: 30s
+  scrape_timeout: 30s
+  static_configs:
+  - targets: ['192.168.1.89:9526']
+
+- job_name: 'exporter-azure'
+  scrape_interval: 30s
+  scrape_timeout: 30s
+  static_configs:
+  - targets: ['192.168.1.89:9276']
+
+- job_name: 'wmi_exporter'
+  scrape_interval: 5s
+  static_configs:
+  - targets: ['192.168.1.77:9182']
+  
+remote_write:
+  - url: http://192.168.1.151:8428/api/v1/write
+    queue_config:
+      max_samples_per_send: 10000
+      max_shards: 100
+  

@@ -1,0 +1,54 @@
+version: "3.2"
+
+volumes:
+  prometheus_data: {}
+  alertmanager_data: {}
+  grafana_data: {}
+
+networks:
+  netuser:
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.6.1
+    volumes:
+    - ./prometheus/:/etc/prometheus/
+    - prometheus_data:/prometheus
+    command:
+    - '--config.file=/etc/prometheus/prometheus.yml'
+    - '--storage.tsdb.path=/prometheus'
+    - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+    - '--web.console.templates=/usr/share/prometheus/consoles'
+    - '--web.external-url=http://${PROMETHEUS_HOST}:9090/'
+    - '--web.enable-lifecycle'
+    - '--storage.tsdb.retention=15d'
+    ports:
+    - 9080:9090
+    networks:
+    - netuser
+
+  alertmanager:
+    image: prom/alertmanager:v0.16.0
+    ports:
+    - 9083:9093
+    volumes:
+    - ./alertmanager/:/etc/alertmanager/
+    - alertmanager_data:/alertmanager
+    command:
+    - '--config.file=/etc/alertmanager/alertmanager.yml'
+    - '--storage.path=/alertmanager'
+    networks:
+    - netuser
+
+  grafana:
+    image: grafana/grafana
+    ports:
+    - 3080:3000
+    volumes:
+    - ./grafana/:/etc/grafana/provisioning/
+    - grafana_data:/var/lib/grafana
+    environment:
+    - GF_INSTALL_PLUGINS=camptocamp-prometheus-alertmanager-datasource
+    networks:
+    - netuser

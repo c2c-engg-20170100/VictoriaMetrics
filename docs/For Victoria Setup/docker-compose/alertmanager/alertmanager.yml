@@ -1,0 +1,66 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: email
+  
+  routes:
+  - match:
+      job: "exporter-aliyun23"
+    group_wait: 10s
+    group_interval: 10s
+    repeat_interval: 2m
+    receiver: email23
+
+  - match:
+    group_wait: 10s
+    group_interval: 10s
+    repeat_interval: 1h
+    receiver: email12
+
+receivers:
+- name: email
+  email_configs:
+  - to: krishnaysnm@gmail.com
+    from: krishnaysnm@gmail.com
+    smarthost: smtp.gmail.com:587
+    auth_username: "krishnaysnm@gmail.com"
+    auth_identity: "krishnaysnm@gmail.com"
+    auth_password: "another password"
+    headers:
+      Subject: "Alert for instance overloaded"
+
+- name: email23
+  email_configs:
+  - to: ninaveys@rknec.edu
+    from: krishnaysnm@gmail.com
+    smarthost: smtp.gmail.com:587
+    auth_username: "krishnaysnm@gmail.com"
+    auth_identity: "krishnaysnm@gmail.com"
+    auth_password: "another password"
+    headers:
+      Subject: '{{ .CommonAnnotations.summary }}'
+  - to: krishnaysnm@gmail.com
+    from: krishnaysnm@gmail.com
+    smarthost: smtp.gmail.com:587
+    auth_username: "krishnaysnm@gmail.com"
+    auth_identity: "krishnaysnm@gmail.com"
+    auth_password: "another password"
+    headers:
+      Subject: "Alert for instance overloaded"
+
+- name: email12
+  email_configs:
+  - to: yaman.ninave@click2cloud.net
+    from: krishnaysnm@gmail.com
+    smarthost: smtp.gmail.com:587
+    auth_username: "krishnaysnm@gmail.com"
+    auth_identity: "krishnaysnm@gmail.com"
+    auth_password: "another password"
+    headers:
+      Subject: '{{ .CommonAnnotations.summary }}'
+
